@@ -11,7 +11,7 @@ const IndexPage: NextPage = () => {
       </Head>
       <main className='w-full h-screen static'>
         <MapComponent />
-        <div className='absolute top-0 left-0 h-full w-96 p-8'>
+        <div className='absolute top-0 left-0 max-h-full max-w-96 p-8'>
           <NumberSelectorWidget />
         </div>
       </main>
