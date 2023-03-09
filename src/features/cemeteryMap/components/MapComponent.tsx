@@ -1,14 +1,15 @@
 import { FC } from "react";
 import { Layer, LayerProps, Map, Marker, Source } from "react-map-gl";
 import maplibregl from 'maplibre-gl';
+import useSWR from 'swr'
 
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useRecoilValue } from "recoil";
-import { selectedTombPolygon } from "@/features/states/selectedTombPolygon";
+import { useSelectedTombPolygon } from "@/features/states/selectedTombPolygon";
 import { useStartLocation } from "./hooks/useStartLocation";
+import { fetchRoute } from "@/common/findRoute";
 
 export const MapComponent: FC = () => {
-  const layerGeoJson = useRecoilValue(selectedTombPolygon)
+  const { selectedTomb: layerGeoJson } = useSelectedTombPolygon()
   const layerStyle: LayerProps = {
     id: 'tombLayer',
     type: 'fill',
@@ -18,7 +19,19 @@ export const MapComponent: FC = () => {
     },
   }
 
+  const lineStyle: LayerProps = {
+    id: 'routeLayer',
+    type: 'line',
+    paint: {
+      'line-color': '#ff0000',
+    }
+  }
+
   const { startLocation, setLocation } = useStartLocation()
+  const { data: routePolygon } = useSWR(
+    () => layerGeoJson ? [startLocation, layerGeoJson] : null,
+    ([source, destination]) => fetchRoute(source, destination)
+  )
 
   return (
     <Map
@@ -36,8 +49,14 @@ export const MapComponent: FC = () => {
           <Layer {...layerStyle} />
         </Source>
       }
+      { routePolygon &&
+        <Source id='routePolygon' type="geojson" data={routePolygon}>
+          <Layer {...lineStyle} />
+        </Source>
+      }
       <Marker 
-        {...startLocation} 
+        longitude={startLocation.lng}
+        latitude={startLocation.lat}
         draggable={true} 
         onDragEnd={setLocation} 
         offset={[20, -20]}
