@@ -1,4 +1,4 @@
-import { selector } from "recoil";
+import { selector, useRecoilValue } from "recoil";
 import zoshigayaLayers from '../../layers/zoshigaya.json'
 import { selectedTombNumber } from "../tombNumberSelector/states/selectedTombNumber";
 
@@ -12,3 +12,10 @@ export const selectedTombPolygon = selector<GeoJSON.Polygon | undefined>({
     return foundLayer
   }
 })
+
+export function useSelectedTombPolygon() {
+  const selectedTomb = useRecoilValue(selectedTombPolygon)
+  const selected = selectedTomb !== undefined
+
+  return { selectedTomb, selected }
+}
