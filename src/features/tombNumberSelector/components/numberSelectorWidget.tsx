@@ -64,13 +64,6 @@ export const NumberSelectorWidget: FC = () => {
           </div>
         </div>
       </div>
-      <div className="flex-row space-y-2 w-full">
-        <button 
-          className="w-full p-2 rounded bg-blue-500 active:bg-blue-700 text-white"
-        >
-          ルート検索
-        </button>
-      </div>
     </div>
   )
 }
