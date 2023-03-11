@@ -7,15 +7,26 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { useSelectedTombPolygon } from "@/features/states/selectedTombPolygon";
 import { useStartLocation } from "./hooks/useStartLocation";
 import { fetchRoute } from "@/common/findRoute";
+import { useUserLocation } from "@/features/states/userLocation";
 
 export const MapComponent: FC = () => {
   const { selectedTomb: layerGeoJson } = useSelectedTombPolygon()
+
+  const { startLocation, setLocation } = useStartLocation()
+
+  const { data: routePolygon } = useSWR(
+    () => layerGeoJson ? [startLocation, layerGeoJson] : null,
+    ([source, destination]) => fetchRoute(source, destination)
+  )
+
+  const { userLocation } = useUserLocation()
+
   const layerStyle: LayerProps = {
     id: 'tombLayer',
     type: 'fill',
     paint: {
       "fill-color": '#ff0000',
-      "fill-opacity": 0.8,
+      "fill-opacity": 0.6,
     },
   }
 
@@ -24,14 +35,19 @@ export const MapComponent: FC = () => {
     type: 'line',
     paint: {
       'line-color': '#ff0000',
+      'line-width': 3,
     }
   }
 
-  const { startLocation, setLocation } = useStartLocation()
-  const { data: routePolygon } = useSWR(
-    () => layerGeoJson ? [startLocation, layerGeoJson] : null,
-    ([source, destination]) => fetchRoute(source, destination)
-  )
+  const circleStyle: LayerProps = {
+    id: "circleLayer",
+    type: "circle",
+    paint: {
+      "circle-color": '#0000ff',
+      "circle-opacity": 0.3,
+      'circle-radius': userLocation?.accuracy ?? 20,
+    }
+  }
 
   return (
     <Map
@@ -52,6 +68,11 @@ export const MapComponent: FC = () => {
       { routePolygon &&
         <Source id='routePolygon' type="geojson" data={routePolygon}>
           <Layer {...lineStyle} />
+        </Source>
+      }
+      { userLocation &&
+        <Source id='locationPolygon' type="geojson" data={userLocation.point}>
+          <Layer {...circleStyle} />
         </Source>
       }
       <Marker 
